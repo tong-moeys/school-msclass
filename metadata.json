@@ -1,0 +1,8 @@
+{
+  "name": "Remix Test Results Management System",
+  "description": "A comprehensive Khmer school test score management system featuring real-time Firestore synchronization, Firebase authentication, student profiles, attendance, grade analysis, and printable QR certificates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

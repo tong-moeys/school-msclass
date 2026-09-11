@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "teachers": {
+      "title": "Teacher Profile",
+      "description": "Teacher account details",
+      "properties": {
+        "fullName": { "type": "string" },
+        "title": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "school": { "type": "string" },
+        "schoolID": { "type": "string" },
+        "level": { "type": "string" },
+        "province": { "type": "string" },
+        "district": { "type": "string" },
+        "commune": { "type": "string" },
+        "village": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email"]
+    },
+    "students": {
+      "title": "Student Record",
+      "description": "Student details in a class",
+      "properties": {
+        "classId": { "type": "string" },
+        "lastName": { "type": "string" },
+        "firstName": { "type": "string" },
+        "gender": { "type": "string" },
+        "dob": { "type": "string" },
+        "age": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "fatherJob": { "type": "string" },
+        "motherName": { "type": "string" },
+        "motherJob": { "type": "string" },
+        "village": { "type": "string" },
+        "commune": { "type": "string" },
+        "district": { "type": "string" },
+        "province": { "type": "string" },
+        "phone": { "type": "string" },
+        "photoUrl": { "type": "string" }
+      },
+      "required": ["classId", "lastName", "firstName"]
+    },
+    "scores": {
+      "title": "Student Exam Scores",
+      "description": "Monthly and semester exam scores",
+      "properties": {
+        "classId": { "type": "string" },
+        "semesterId": { "type": "string" },
+        "monthIdx": { "type": "number" },
+        "studentId": { "type": "string" },
+        "scores": { "type": "object" }
+      },
+      "required": ["classId", "semesterId", "studentId"]
+    },
+    "attendance": {
+      "title": "Attendance Log",
+      "description": "Daily attendance log per student per month",
+      "properties": {
+        "classId": { "type": "string" },
+        "semesterId": { "type": "string" },
+        "monthIdx": { "type": "number" },
+        "studentId": { "type": "string" },
+        "days": { "type": "object" }
+      },
+      "required": ["classId", "semesterId", "studentId"]
+    },
+    "honorPhotos": {
+      "title": "Student Photo",
+      "description": "Avatar/Photo for honor roll and certificates",
+      "properties": {
+        "classId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "photoUrl": { "type": "string" }
+      },
+      "required": ["classId", "studentId"]
+    },
+    "coreGrades": {
+      "title": "Core Subject Grades",
+      "description": "Core grades breakdown for Khmer & Math",
+      "properties": {
+        "classId": { "type": "string" },
+        "semesterId": { "type": "string" },
+        "monthIdx": { "type": "number" },
+        "studentId": { "type": "string" }
+      },
+      "required": ["classId", "semesterId", "studentId"]
+    }
+  }
+}
