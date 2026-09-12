@@ -15,7 +15,8 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, (config as any).firestoreDatabaseId || "(default)");
+const dbId = (config as any).firestoreDatabaseId;
+export const db = dbId && dbId !== "(default)" ? getFirestore(app, dbId) : getFirestore(app);
 export const DB_ROOT = "plp2026";
 export const projectId = config.projectId;
 export const firestoreConsoleUrl = `https://console.firebase.google.com/project/${config.projectId}/firestore`;

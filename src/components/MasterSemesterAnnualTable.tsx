@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Student, ScoreMap, SemesterExamRecord, DomainGrades } from "../types";
+import { Student, ScoreMap, SemesterExamRecord, DomainGrades, ScoreDisplayMode } from "../types";
 import {
   EXAM_SUBJECTS, EVAL_DOMAINS,
   fmtAvg, fmtTotal, fmtScore, gradeOf, resultOf, truncate2, toKhNum,
@@ -9,6 +9,7 @@ import {
 } from "../lib/constants";
 import * as XLSX from "xlsx";
 import { printHTML } from "../lib/printUtils";
+import { ScoreDisplayToggle, GradeBadge } from "./ScoreDisplayToggle";
 
 interface MasterSemesterAnnualTableProps {
   students: Student[];
@@ -25,6 +26,8 @@ interface MasterSemesterAnnualTableProps {
   schoolName?: string;
   teacherName?: string;
   className?: string;
+  displayMode?: ScoreDisplayMode;
+  onDisplayModeChange?: (mode: ScoreDisplayMode) => void;
 }
 
 export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps> = ({
@@ -42,7 +45,16 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
   schoolName = "សាលាបឋមសិក្សា",
   teacherName = "",
   className = "",
+  displayMode: externalMode,
+  onDisplayModeChange,
 }) => {
+  const [internalMode, setInternalMode] = useState<ScoreDisplayMode>("both");
+  const mode = externalMode ?? internalMode;
+  const setMode = (m: ScoreDisplayMode) => {
+    setInternalMode(m);
+    if (onDisplayModeChange) onDisplayModeChange(m);
+  };
+
   const [search, setSearch] = useState("");
   const [filterGender, setFilterGender] = useState<string>("all");
   const [viewScope, setViewScope] = useState<"all" | "s1" | "s2" | "annual">("all");
@@ -153,12 +165,12 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
     const row1 = [
       "ល.រ", "គោត្តនាម និងនាម", "ភេទ",
       ...Array(11).fill("ឆមាសទី១ (ពិន្ទុប្រឡង)"),
-      "ឆមាសទី១", "ឆមាសទី១", "ឆមាសទី១", "ឆមាសទី១",
+      "ឆមាសទី១", "ឆមាសទី១", "ឆមាសទី១", "ឆមាសទី១", "ឆមាសទី១",
       "ឆមាសទី១", "ឆមាសទី១", "ឆមាសទី១", "ឆមាសទី១",
       ...Array(11).fill("ឆមាសទី២ (ពិន្ទុប្រឡង)"),
+      "ឆមាសទី២", "ឆមាសទី២", "ឆមាសទី២", "ឆមាសទី២", "ឆមាសទី២",
       "ឆមាសទី២", "ឆមាសទី២", "ឆមាសទី២", "ឆមាសទី២",
-      "ឆមាសទី២", "ឆមាសទី២", "ឆមាសទី២", "ឆមាសទី២",
-      "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ",
+      "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ", "ប្រចាំឆ្នាំ",
       "សេចក្តីផ្សេងៗ"
     ];
 
@@ -166,12 +178,12 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
     const row2 = [
       "", "", "",
       ...EXAM_SUBJECTS,
-      "ម.ប្រឡង", "ម.ប្រចាំខែ", "ម.ប្រចាំឆមាស", "ចំណាត់ថ្នាក់",
+      "ម.ប្រឡង", "ម.ប្រចាំខែ", "ម.ប្រចាំឆមាស", "ចំណាត់ថ្នាក់", "និទ្ទេស",
       "ចំណេះដឹង", "បំណិន-បំណេះធ្វើ", "តម្លៃ-សីលធម៌", "សមត្ថភាព-ការចូលរួម",
       ...EXAM_SUBJECTS,
-      "ម.ប្រឡង", "ម.ប្រចាំខែ", "ម.ប្រចាំឆមាស", "ចំណាត់ថ្នាក់",
+      "ម.ប្រឡង", "ម.ប្រចាំខែ", "ម.ប្រចាំឆមាស", "ចំណាត់ថ្នាក់", "និទ្ទេស",
       "ចំណេះដឹង", "បំណិន-បំណេះធ្វើ", "តម្លៃ-សីលធម៌", "សមត្ថភាព-ការចូលរួម",
-      "មធ្យមភាគប្រចាំឆ្នាំ", "ចំណាត់ថ្នាក់",
+      "មធ្យមភាគប្រចាំឆ្នាំ", "ចំណាត់ថ្នាក់", "និទ្ទេស",
       "ចំណេះដឹង", "បំណិន-បំណេះធ្វើ", "តម្លៃ-សីលធម៌", "សមត្ថភាព-ការចូលរួម",
       ""
     ];
@@ -187,6 +199,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
       const s1MAvg = computeStudentSemesterMonthlyAvg(s.id, "s1", allMonthsScores);
       const s1FinalAvg = computeStudentSemesterFinalAvg(s.id, "s1", allMonthsScores, s1ScoresMap);
       const s1Rank = s1RankMap[s.id] ?? "—";
+      const s1Grade = s1FinalAvg !== null ? gradeOf(s1FinalAvg).l : "";
       const s1Dom = rec1.domains || {};
 
       // S2 Data
@@ -195,11 +208,13 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
       const s2MAvg = computeStudentSemesterMonthlyAvg(s.id, "s2", allMonthsScores);
       const s2FinalAvg = computeStudentSemesterFinalAvg(s.id, "s2", allMonthsScores, s2ScoresMap);
       const s2Rank = s2RankMap[s.id] ?? "—";
+      const s2Grade = s2FinalAvg !== null ? gradeOf(s2FinalAvg).l : "";
       const s2Dom = rec2.domains || {};
 
       // Annual Data
       const annualAvg = computeStudentAnnualAvg(s.id, allMonthsScores, s1ScoresMap, s2ScoresMap);
       const annualRank = annualRankMap[s.id] ?? "—";
+      const annualGrade = annualAvg !== null ? gradeOf(annualAvg).l : "";
 
       return [
         idx + 1,
@@ -210,6 +225,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
         s1MAvg !== null ? fmtAvg(s1MAvg) : "",
         s1FinalAvg !== null ? fmtAvg(s1FinalAvg) : "",
         s1Rank,
+        s1Grade,
         s1Dom.knowledge || (s1FinalAvg !== null ? deriveDomainLetter(s1FinalAvg) : ""),
         s1Dom.skills || (s1FinalAvg !== null ? deriveDomainLetter(s1FinalAvg) : ""),
         s1Dom.values || (s1FinalAvg !== null ? deriveDomainLetter(s1FinalAvg) : ""),
@@ -219,12 +235,14 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
         s2MAvg !== null ? fmtAvg(s2MAvg) : "",
         s2FinalAvg !== null ? fmtAvg(s2FinalAvg) : "",
         s2Rank,
+        s2Grade,
         s2Dom.knowledge || (s2FinalAvg !== null ? deriveDomainLetter(s2FinalAvg) : ""),
         s2Dom.skills || (s2FinalAvg !== null ? deriveDomainLetter(s2FinalAvg) : ""),
         s2Dom.values || (s2FinalAvg !== null ? deriveDomainLetter(s2FinalAvg) : ""),
         s2Dom.participation || (s2FinalAvg !== null ? deriveDomainLetter(s2FinalAvg) : ""),
         annualAvg !== null ? fmtAvg(annualAvg) : "",
         annualRank,
+        annualGrade,
         annualAvg !== null ? deriveDomainLetter(annualAvg) : "",
         annualAvg !== null ? deriveDomainLetter(annualAvg) : "",
         annualAvg !== null ? deriveDomainLetter(annualAvg) : "",
@@ -263,6 +281,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
       const s1MAvg = computeStudentSemesterMonthlyAvg(s.id, "s1", allMonthsScores);
       const s1FinalAvg = computeStudentSemesterFinalAvg(s.id, "s1", allMonthsScores, s1ScoresMap);
       const s1Rank = s1RankMap[s.id] ?? "—";
+      const s1Grade = s1FinalAvg !== null ? gradeOf(s1FinalAvg).l : "—";
       const s1Dom = rec1.domains || {};
 
       // S2
@@ -274,11 +293,13 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
       const s2MAvg = computeStudentSemesterMonthlyAvg(s.id, "s2", allMonthsScores);
       const s2FinalAvg = computeStudentSemesterFinalAvg(s.id, "s2", allMonthsScores, s2ScoresMap);
       const s2Rank = s2RankMap[s.id] ?? "—";
+      const s2Grade = s2FinalAvg !== null ? gradeOf(s2FinalAvg).l : "—";
       const s2Dom = rec2.domains || {};
 
       // Annual
       const annualAvg = computeStudentAnnualAvg(s.id, allMonthsScores, s1ScoresMap, s2ScoresMap);
       const annualRank = annualRankMap[s.id] ?? "—";
+      const annualGrade = annualAvg !== null ? gradeOf(annualAvg).l : "—";
       const remark = annualRemarks[s.id] || (annualAvg !== null && annualAvg >= 5.0 ? "ឡើងថ្នាក់" : annualAvg !== null ? "ត្រួតថ្នាក់" : "");
 
       return `
@@ -293,6 +314,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:8.5px;background:#f1f5f9;">${s1MAvg !== null ? fmtAvg(s1MAvg) : "—"}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:9px;background:#e0e7ff;color:#1e1b4b;">${s1FinalAvg !== null ? fmtAvg(s1FinalAvg) : "—"}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:8.5px;">${s1Rank}</td>
+          <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:8.5px;background:#fef3c7;">${s1Grade}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${s1Dom.knowledge || (s1FinalAvg !== null ? deriveDomainLetter(s1FinalAvg) : "—")}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${s1Dom.skills || (s1FinalAvg !== null ? deriveDomainLetter(s1FinalAvg) : "—")}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${s1Dom.values || (s1FinalAvg !== null ? deriveDomainLetter(s1FinalAvg) : "—")}</td>
@@ -304,6 +326,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:8.5px;background:#f1f5f9;">${s2MAvg !== null ? fmtAvg(s2MAvg) : "—"}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:9px;background:#e0e7ff;color:#1e1b4b;">${s2FinalAvg !== null ? fmtAvg(s2FinalAvg) : "—"}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:8.5px;">${s2Rank}</td>
+          <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:8.5px;background:#fef3c7;">${s2Grade}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${s2Dom.knowledge || (s2FinalAvg !== null ? deriveDomainLetter(s2FinalAvg) : "—")}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${s2Dom.skills || (s2FinalAvg !== null ? deriveDomainLetter(s2FinalAvg) : "—")}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${s2Dom.values || (s2FinalAvg !== null ? deriveDomainLetter(s2FinalAvg) : "—")}</td>
@@ -312,6 +335,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
           <!-- Annual -->
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:900;font-size:9.5px;background:#fef3c7;color:#78350f;">${annualAvg !== null ? fmtAvg(annualAvg) : "—"}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:9px;">${annualRank}</td>
+          <td style="border:1px solid #334155;padding:2px;text-align:center;font-weight:bold;font-size:8.5px;background:#fef3c7;">${annualGrade}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${annualAvg !== null ? deriveDomainLetter(annualAvg) : "—"}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${annualAvg !== null ? deriveDomainLetter(annualAvg) : "—"}</td>
           <td style="border:1px solid #334155;padding:2px;text-align:center;font-size:8px;">${annualAvg !== null ? deriveDomainLetter(annualAvg) : "—"}</td>
@@ -357,24 +381,24 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
               <th rowspan="3" style="width:20px;">ល.រ</th>
               <th rowspan="3" style="min-width:100px;">គោត្តនាម និងនាម</th>
               <th rowspan="3" style="width:24px;">ភេទ</th>
-              <th colspan="19" style="background:#dbeafe;color:#1e3a8a;font-size:9.5px;font-weight:bold;">ឆមាសទី១</th>
-              <th colspan="19" style="background:#f3e8ff;color:#581c87;font-size:9.5px;font-weight:bold;">ឆមាសទី២</th>
-              <th colspan="6" style="background:#fef3c7;color:#78350f;font-size:9.5px;font-weight:bold;">ប្រចាំឆ្នាំ</th>
+              <th colspan="20" style="background:#dbeafe;color:#1e3a8a;font-size:9.5px;font-weight:bold;">ឆមាសទី១</th>
+              <th colspan="20" style="background:#f3e8ff;color:#581c87;font-size:9.5px;font-weight:bold;">ឆមាសទី២</th>
+              <th colspan="7" style="background:#fef3c7;color:#78350f;font-size:9.5px;font-weight:bold;">ប្រចាំឆ្នាំ</th>
               <th rowspan="3" style="min-width:45px;">សេចក្តីផ្សេងៗ</th>
             </tr>
             <tr>
               <!-- S1 Sub-groups -->
               <th colspan="11">ពិន្ទុប្រឡងឆមាស</th>
-              <th colspan="4" style="background:#e2e8f0;">លទ្ធផលប្រចាំឆមាស</th>
+              <th colspan="5" style="background:#e2e8f0;">លទ្ធផលប្រចាំឆមាស</th>
               <th colspan="4" style="background:#fef3c7;">និទ្ទេសតាមផ្នែក</th>
 
               <!-- S2 Sub-groups -->
               <th colspan="11">ពិន្ទុប្រឡងឆមាស</th>
-              <th colspan="4" style="background:#e2e8f0;">លទ្ធផលប្រចាំឆមាស</th>
+              <th colspan="5" style="background:#e2e8f0;">លទ្ធផលប្រចាំឆមាស</th>
               <th colspan="4" style="background:#fef3c7;">និទ្ទេសតាមផ្នែក</th>
 
               <!-- Annual Sub-groups -->
-              <th colspan="2" style="background:#fef3c7;">លទ្ធផល</th>
+              <th colspan="3" style="background:#fef3c7;">លទ្ធផល</th>
               <th colspan="4" style="background:#fef3c7;">និទ្ទេសតាមផ្នែក</th>
             </tr>
             <tr>
@@ -384,6 +408,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
               <th style="font-size:7.5px;">ម.ប្រចាំខែ</th>
               <th style="font-size:7.5px;font-weight:bold;background:#e0e7ff;">ម.ឆមាស</th>
               <th style="font-size:7.5px;">ចំ.ថ្នាក់</th>
+              <th style="font-size:7.5px;font-weight:bold;background:#fef3c7;">និទ្ទេស</th>
               <th style="font-size:7px;">ចំណេះដឹង</th>
               <th style="font-size:7px;">បំណិន</th>
               <th style="font-size:7px;">តម្លៃ</th>
@@ -395,6 +420,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
               <th style="font-size:7.5px;">ម.ប្រចាំខែ</th>
               <th style="font-size:7.5px;font-weight:bold;background:#e0e7ff;">ម.ឆមាស</th>
               <th style="font-size:7.5px;">ចំ.ថ្នាក់</th>
+              <th style="font-size:7.5px;font-weight:bold;background:#fef3c7;">និទ្ទេស</th>
               <th style="font-size:7px;">ចំណេះដឹង</th>
               <th style="font-size:7px;">បំណិន</th>
               <th style="font-size:7px;">តម្លៃ</th>
@@ -403,6 +429,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
               <!-- Annual Columns -->
               <th style="font-size:7.5px;font-weight:bold;background:#fde68a;">ម.ប្រចាំឆ្នាំ</th>
               <th style="font-size:7.5px;">ចំ.ថ្នាក់</th>
+              <th style="font-size:7.5px;font-weight:bold;background:#fef3c7;">និទ្ទេស</th>
               <th style="font-size:7px;">ចំណេះដឹង</th>
               <th style="font-size:7px;">បំណិន</th>
               <th style="font-size:7px;">តម្លៃ</th>
@@ -500,6 +527,8 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
             <span>·</span>
             <span className="text-red-600">ត្រួតថ្នាក់: {annualFailCount}</span>
           </div>
+
+          <ScoreDisplayToggle mode={mode} onChange={setMode} compact={true} />
         </div>
 
         {/* Buttons */}
@@ -565,21 +594,21 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
 
               {/* S1 Group */}
               {(viewScope === "all" || viewScope === "s1") && (
-                <th colSpan={19} className="py-1 px-2 text-center bg-blue-950 text-blue-200 border-b border-r border-blue-800 font-black">
+                <th colSpan={20} className="py-1 px-2 text-center bg-blue-950 text-blue-200 border-b border-r border-blue-800 font-black">
                   📘 ឆមាសទី១ (SEMESTER 1)
                 </th>
               )}
 
               {/* S2 Group */}
               {(viewScope === "all" || viewScope === "s2") && (
-                <th colSpan={19} className="py-1 px-2 text-center bg-purple-950 text-purple-200 border-b border-r border-purple-800 font-black">
+                <th colSpan={20} className="py-1 px-2 text-center bg-purple-950 text-purple-200 border-b border-r border-purple-800 font-black">
                   📙 ឆមាសទី២ (SEMESTER 2)
                 </th>
               )}
 
               {/* Annual Group */}
               {(viewScope === "all" || viewScope === "annual") && (
-                <th colSpan={6} className="py-1 px-2 text-center bg-amber-950 text-amber-200 border-b border-r border-amber-800 font-black">
+                <th colSpan={7} className="py-1 px-2 text-center bg-amber-950 text-amber-200 border-b border-r border-amber-800 font-black">
                   🏆 ប្រចាំឆ្នាំ (ANNUAL)
                 </th>
               )}
@@ -597,7 +626,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                   <th colSpan={11} className="py-1 px-1 text-center bg-blue-900/90 text-blue-100 border-r border-blue-800">
                     ពិន្ទុប្រឡងឆមាស
                   </th>
-                  <th colSpan={4} className="py-1 px-1 text-center bg-indigo-900/90 text-indigo-100 border-r border-indigo-800">
+                  <th colSpan={5} className="py-1 px-1 text-center bg-indigo-900/90 text-indigo-100 border-r border-indigo-800">
                     លទ្ធផលប្រចាំឆមាស
                   </th>
                   <th colSpan={4} className="py-1 px-1 text-center bg-amber-900/90 text-amber-100 border-r border-amber-800">
@@ -612,7 +641,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                   <th colSpan={11} className="py-1 px-1 text-center bg-purple-900/90 text-purple-100 border-r border-purple-800">
                     ពិន្ទុប្រឡងឆមាស
                   </th>
-                  <th colSpan={4} className="py-1 px-1 text-center bg-indigo-900/90 text-indigo-100 border-r border-indigo-800">
+                  <th colSpan={5} className="py-1 px-1 text-center bg-indigo-900/90 text-indigo-100 border-r border-indigo-800">
                     លទ្ធផលប្រចាំឆមាស
                   </th>
                   <th colSpan={4} className="py-1 px-1 text-center bg-amber-900/90 text-amber-100 border-r border-amber-800">
@@ -624,7 +653,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
               {/* Annual Subgroups */}
               {(viewScope === "all" || viewScope === "annual") && (
                 <>
-                  <th colSpan={2} className="py-1 px-1 text-center bg-amber-900/90 text-amber-100 border-r border-amber-800">
+                  <th colSpan={3} className="py-1 px-1 text-center bg-amber-900/90 text-amber-100 border-r border-amber-800">
                     លទ្ធផល
                   </th>
                   <th colSpan={4} className="py-1 px-1 text-center bg-amber-950 text-amber-200 border-r border-amber-900">
@@ -648,6 +677,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                   <th className="py-1.5 px-1 text-center min-w-[46px] bg-blue-900 text-blue-100 border-r border-blue-800">ម.ប្រចាំខែ</th>
                   <th className="py-1.5 px-1 text-center min-w-[50px] bg-indigo-950 text-amber-300 font-black border-r border-indigo-900">ម.ឆមាស</th>
                   <th className="py-1.5 px-1 text-center min-w-[36px] bg-slate-800 text-white border-r border-slate-600">ចំ.ថ្នាក់</th>
+                  <th className="py-1.5 px-1 text-center min-w-[40px] bg-amber-900 text-amber-200 font-black border-r border-amber-800">និទ្ទេស</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">ចំណេះដឹង</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">បំណិន</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">តម្លៃ</th>
@@ -667,6 +697,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                   <th className="py-1.5 px-1 text-center min-w-[46px] bg-purple-900 text-purple-100 border-r border-purple-800">ម.ប្រចាំខែ</th>
                   <th className="py-1.5 px-1 text-center min-w-[50px] bg-indigo-950 text-amber-300 font-black border-r border-indigo-900">ម.ឆមាស</th>
                   <th className="py-1.5 px-1 text-center min-w-[36px] bg-slate-800 text-white border-r border-slate-600">ចំ.ថ្នាក់</th>
+                  <th className="py-1.5 px-1 text-center min-w-[40px] bg-amber-900 text-amber-200 font-black border-r border-amber-800">និទ្ទេស</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">ចំណេះដឹង</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">បំណិន</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">តម្លៃ</th>
@@ -679,6 +710,7 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                 <>
                   <th className="py-1.5 px-1 text-center min-w-[55px] bg-amber-950 text-amber-300 font-black border-r border-amber-800">ម.ប្រចាំឆ្នាំ</th>
                   <th className="py-1.5 px-1 text-center min-w-[38px] bg-slate-800 text-white border-r border-slate-600">ចំ.ថ្នាក់</th>
+                  <th className="py-1.5 px-1 text-center min-w-[40px] bg-amber-900 text-amber-200 font-black border-r border-amber-800">និទ្ទេស</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">ចំណេះដឹង</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">បំណិន</th>
                   <th className="py-1.5 px-0.5 text-center min-w-[36px] bg-amber-900/80 text-amber-100 border-r border-amber-800">តម្លៃ</th>
@@ -745,6 +777,10 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                     <>
                       {EXAM_SUBJECTS.map((subj) => {
                         const val = rec1.scores?.[subj] ?? "";
+                        const num = Number(val);
+                        const hasVal = val !== "" && val !== undefined && !isNaN(num);
+                        const gr = hasVal ? gradeOf(num) : null;
+
                         return (
                           <td key={`s1_${subj}`} className="py-1 px-0.5 text-center border-r border-slate-100 font-semibold text-[11px]">
                             {editMode && onUpdateExamScore ? (
@@ -758,33 +794,81 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                                   const raw = e.target.value;
                                   if (raw === "") onUpdateExamScore("s1", s.id, subj, "");
                                   else {
-                                    const num = parseFloat(raw);
-                                    onUpdateExamScore("s1", s.id, subj, isNaN(num) ? "" : num);
+                                    const parsed = parseFloat(raw);
+                                    onUpdateExamScore("s1", s.id, subj, isNaN(parsed) ? "" : parsed);
                                   }
                                 }}
                                 placeholder="—"
                                 className="w-9 text-center border border-blue-200 rounded py-0.5 text-[10.5px] outline-none"
                               />
                             ) : (
-                              <span className={Number(val) >= 5 ? "text-emerald-700 font-bold" : val !== "" ? "text-red-600 font-bold" : "text-slate-300"}>
-                                {val !== "" && val !== undefined ? fmtScore(val) : "—"}
-                              </span>
+                              <div className="flex items-center justify-center gap-0.5">
+                                {mode !== "grade" && (
+                                  <span className={num >= 5 ? "text-emerald-700 font-bold" : hasVal ? "text-red-600 font-bold" : "text-slate-300"}>
+                                    {hasVal ? fmtScore(val) : "—"}
+                                  </span>
+                                )}
+                                {mode !== "avg" && gr && (
+                                  <GradeBadge letter={gr.l} color={gr.c} size="xs" />
+                                )}
+                                {mode === "grade" && !hasVal && (
+                                  <span className="text-slate-300">—</span>
+                                )}
+                              </div>
                             )}
                           </td>
                         );
                       })}
 
                       <td className="py-1 px-1 text-center bg-blue-50/70 font-extrabold text-blue-900 border-r border-blue-100">
-                        {s1EAvg !== null ? fmtAvg(s1EAvg) : "—"}
+                        {s1EAvg !== null ? (
+                          mode === "grade" ? (
+                            <GradeBadge letter={gradeOf(s1EAvg).l} color={gradeOf(s1EAvg).c} size="xs" />
+                          ) : mode === "both" ? (
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{fmtAvg(s1EAvg)}</span>
+                              <GradeBadge letter={gradeOf(s1EAvg).l} color={gradeOf(s1EAvg).c} size="xs" />
+                            </div>
+                          ) : (
+                            fmtAvg(s1EAvg)
+                          )
+                        ) : "—"}
                       </td>
                       <td className="py-1 px-1 text-center bg-blue-50 font-extrabold text-blue-950 border-r border-blue-100">
-                        {s1MAvg !== null ? fmtAvg(s1MAvg) : "—"}
+                        {s1MAvg !== null ? (
+                          mode === "grade" ? (
+                            <GradeBadge letter={gradeOf(s1MAvg).l} color={gradeOf(s1MAvg).c} size="xs" />
+                          ) : mode === "both" ? (
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{fmtAvg(s1MAvg)}</span>
+                              <GradeBadge letter={gradeOf(s1MAvg).l} color={gradeOf(s1MAvg).c} size="xs" />
+                            </div>
+                          ) : (
+                            fmtAvg(s1MAvg)
+                          )
+                        ) : "—"}
                       </td>
                       <td className="py-1 px-1 text-center bg-indigo-50 font-black text-indigo-950 border-r border-indigo-200">
-                        {s1FinalAvg !== null ? fmtAvg(s1FinalAvg) : "—"}
+                        {s1FinalAvg !== null ? (
+                          mode === "grade" ? (
+                            <GradeBadge letter={gradeOf(s1FinalAvg).l} color={gradeOf(s1FinalAvg).c} size="sm" />
+                          ) : mode === "both" ? (
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{fmtAvg(s1FinalAvg)}</span>
+                              <GradeBadge letter={gradeOf(s1FinalAvg).l} color={gradeOf(s1FinalAvg).c} size="xs" />
+                            </div>
+                          ) : (
+                            fmtAvg(s1FinalAvg)
+                          )
+                        ) : "—"}
                       </td>
                       <td className="py-1 px-1 text-center font-black text-slate-800 border-r border-slate-200">
                         {s1Rank}
+                      </td>
+                      <td className="py-1 px-1 text-center bg-amber-50 font-black text-amber-950 border-r border-amber-200">
+                        {s1FinalAvg !== null ? (
+                          <GradeBadge letter={gradeOf(s1FinalAvg).l} color={gradeOf(s1FinalAvg).c} size="sm" />
+                        ) : "—"}
                       </td>
 
                       {/* S1 Domains */}
@@ -804,6 +888,10 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                     <>
                       {EXAM_SUBJECTS.map((subj) => {
                         const val = rec2.scores?.[subj] ?? "";
+                        const num = Number(val);
+                        const hasVal = val !== "" && val !== undefined && !isNaN(num);
+                        const gr = hasVal ? gradeOf(num) : null;
+
                         return (
                           <td key={`s2_${subj}`} className="py-1 px-0.5 text-center border-r border-slate-100 font-semibold text-[11px]">
                             {editMode && onUpdateExamScore ? (
@@ -817,33 +905,81 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                                   const raw = e.target.value;
                                   if (raw === "") onUpdateExamScore("s2", s.id, subj, "");
                                   else {
-                                    const num = parseFloat(raw);
-                                    onUpdateExamScore("s2", s.id, subj, isNaN(num) ? "" : num);
+                                    const parsed = parseFloat(raw);
+                                    onUpdateExamScore("s2", s.id, subj, isNaN(parsed) ? "" : parsed);
                                   }
                                 }}
                                 placeholder="—"
                                 className="w-9 text-center border border-purple-200 rounded py-0.5 text-[10.5px] outline-none"
                               />
                             ) : (
-                              <span className={Number(val) >= 5 ? "text-emerald-700 font-bold" : val !== "" ? "text-red-600 font-bold" : "text-slate-300"}>
-                                {val !== "" && val !== undefined ? fmtScore(val) : "—"}
-                              </span>
+                              <div className="flex items-center justify-center gap-0.5">
+                                {mode !== "grade" && (
+                                  <span className={num >= 5 ? "text-emerald-700 font-bold" : hasVal ? "text-red-600 font-bold" : "text-slate-300"}>
+                                    {hasVal ? fmtScore(val) : "—"}
+                                  </span>
+                                )}
+                                {mode !== "avg" && gr && (
+                                  <GradeBadge letter={gr.l} color={gr.c} size="xs" />
+                                )}
+                                {mode === "grade" && !hasVal && (
+                                  <span className="text-slate-300">—</span>
+                                )}
+                              </div>
                             )}
                           </td>
                         );
                       })}
 
                       <td className="py-1 px-1 text-center bg-purple-50/70 font-extrabold text-purple-900 border-r border-purple-100">
-                        {s2EAvg !== null ? fmtAvg(s2EAvg) : "—"}
+                        {s2EAvg !== null ? (
+                          mode === "grade" ? (
+                            <GradeBadge letter={gradeOf(s2EAvg).l} color={gradeOf(s2EAvg).c} size="xs" />
+                          ) : mode === "both" ? (
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{fmtAvg(s2EAvg)}</span>
+                              <GradeBadge letter={gradeOf(s2EAvg).l} color={gradeOf(s2EAvg).c} size="xs" />
+                            </div>
+                          ) : (
+                            fmtAvg(s2EAvg)
+                          )
+                        ) : "—"}
                       </td>
                       <td className="py-1 px-1 text-center bg-purple-50 font-extrabold text-purple-950 border-r border-purple-100">
-                        {s2MAvg !== null ? fmtAvg(s2MAvg) : "—"}
+                        {s2MAvg !== null ? (
+                          mode === "grade" ? (
+                            <GradeBadge letter={gradeOf(s2MAvg).l} color={gradeOf(s2MAvg).c} size="xs" />
+                          ) : mode === "both" ? (
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{fmtAvg(s2MAvg)}</span>
+                              <GradeBadge letter={gradeOf(s2MAvg).l} color={gradeOf(s2MAvg).c} size="xs" />
+                            </div>
+                          ) : (
+                            fmtAvg(s2MAvg)
+                          )
+                        ) : "—"}
                       </td>
                       <td className="py-1 px-1 text-center bg-indigo-50 font-black text-indigo-950 border-r border-indigo-200">
-                        {s2FinalAvg !== null ? fmtAvg(s2FinalAvg) : "—"}
+                        {s2FinalAvg !== null ? (
+                          mode === "grade" ? (
+                            <GradeBadge letter={gradeOf(s2FinalAvg).l} color={gradeOf(s2FinalAvg).c} size="sm" />
+                          ) : mode === "both" ? (
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{fmtAvg(s2FinalAvg)}</span>
+                              <GradeBadge letter={gradeOf(s2FinalAvg).l} color={gradeOf(s2FinalAvg).c} size="xs" />
+                            </div>
+                          ) : (
+                            fmtAvg(s2FinalAvg)
+                          )
+                        ) : "—"}
                       </td>
                       <td className="py-1 px-1 text-center font-black text-slate-800 border-r border-slate-200">
                         {s2Rank}
+                      </td>
+                      <td className="py-1 px-1 text-center bg-amber-50 font-black text-amber-950 border-r border-amber-200">
+                        {s2FinalAvg !== null ? (
+                          <GradeBadge letter={gradeOf(s2FinalAvg).l} color={gradeOf(s2FinalAvg).c} size="sm" />
+                        ) : "—"}
                       </td>
 
                       {/* S2 Domains */}
@@ -862,10 +998,26 @@ export const MasterSemesterAnnualTable: React.FC<MasterSemesterAnnualTableProps>
                   {(viewScope === "all" || viewScope === "annual") && (
                     <>
                       <td className="py-1 px-1 text-center bg-amber-100/80 font-black text-amber-950 border-r border-amber-200 text-xs">
-                        {annualAvg !== null ? fmtAvg(annualAvg) : "—"}
+                        {annualAvg !== null ? (
+                          mode === "grade" ? (
+                            <GradeBadge letter={gradeOf(annualAvg).l} color={gradeOf(annualAvg).c} size="sm" />
+                          ) : mode === "both" ? (
+                            <div className="flex flex-col items-center leading-tight">
+                              <span>{fmtAvg(annualAvg)}</span>
+                              <GradeBadge letter={gradeOf(annualAvg).l} color={gradeOf(annualAvg).c} size="xs" />
+                            </div>
+                          ) : (
+                            fmtAvg(annualAvg)
+                          )
+                        ) : "—"}
                       </td>
                       <td className="py-1 px-1 text-center font-black text-slate-800 border-r border-slate-200">
                         {annualRank}
+                      </td>
+                      <td className="py-1 px-1 text-center bg-amber-50 font-black text-amber-950 border-r border-amber-200">
+                        {annualAvg !== null ? (
+                          <GradeBadge letter={gradeOf(annualAvg).l} color={gradeOf(annualAvg).c} size="sm" />
+                        ) : "—"}
                       </td>
                       {(["knowledge", "skills", "values", "participation"] as const).map((dKey) => {
                         const val = annualAvg !== null ? deriveDomainLetter(annualAvg) : "—";

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Student, ScoreMap, SemesterExamRecord, DomainGrades } from "../types";
+import { Student, ScoreMap, SemesterExamRecord, DomainGrades, ScoreDisplayMode } from "../types";
 import {
   EXAM_SUBJECTS, EVAL_DOMAINS,
   fmtAvg, fmtTotal, fmtScore, gradeOf, resultOf, truncate2, toKhNum,
@@ -10,6 +10,7 @@ import {
 import * as XLSX from "xlsx";
 import { printHTML } from "../lib/printUtils";
 import { SemesterExamImportModal } from "./Modals/SemesterExamImportModal";
+import { ScoreDisplayToggle, GradeBadge } from "./ScoreDisplayToggle";
 
 interface SemesterExamTableProps {
   students: Student[];
@@ -29,6 +30,8 @@ interface SemesterExamTableProps {
   teacherName?: string;
   className?: string;
   toast?: (msg: string, type?: "success" | "error" | "info") => void;
+  displayMode?: ScoreDisplayMode;
+  onDisplayModeChange?: (mode: ScoreDisplayMode) => void;
 }
 
 export const SemesterExamTable: React.FC<SemesterExamTableProps> = ({
@@ -49,7 +52,16 @@ export const SemesterExamTable: React.FC<SemesterExamTableProps> = ({
   teacherName = "",
   className = "",
   toast = () => {},
+  displayMode: externalMode,
+  onDisplayModeChange,
 }) => {
+  const [internalMode, setInternalMode] = useState<ScoreDisplayMode>("both");
+  const mode = externalMode ?? internalMode;
+  const setMode = (m: ScoreDisplayMode) => {
+    setInternalMode(m);
+    if (onDisplayModeChange) onDisplayModeChange(m);
+  };
+
   const [search, setSearch] = useState("");
   const [filterGender, setFilterGender] = useState<string>("all");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -381,6 +393,8 @@ export const SemesterExamTable: React.FC<SemesterExamTableProps> = ({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1.5 flex-wrap">
+          <ScoreDisplayToggle mode={mode} onChange={setMode} compact={true} />
+
           {onImportExamScores && (
             <button
               onClick={() => setIsImportModalOpen(true)}
@@ -578,10 +592,21 @@ export const SemesterExamTable: React.FC<SemesterExamTableProps> = ({
                             placeholder="—"
                             className="w-10 text-center border border-blue-300 rounded py-0.5 text-xs outline-none focus:border-blue-600 font-semibold"
                           />
-                        ) : (
-                          <span className={`font-bold ${Number(val) >= 5 ? "text-emerald-700" : val !== "" ? "text-red-600" : "text-slate-300"}`}>
-                            {val !== "" && val !== undefined ? fmtScore(val) : "—"}
+                        ) : val === "" || val === undefined ? (
+                          <span className="text-slate-300 font-bold">—</span>
+                        ) : mode === "grade" ? (
+                          <GradeBadge letter={gradeOf(Number(val)).l} color={gradeOf(Number(val)).c} size="xs" />
+                        ) : mode === "avg" ? (
+                          <span className={`font-bold ${Number(val) >= 5 ? "text-emerald-700" : "text-red-600"}`}>
+                            {fmtScore(val)}
                           </span>
+                        ) : (
+                          <div className="inline-flex items-center justify-center gap-1">
+                            <span className={`font-bold ${Number(val) >= 5 ? "text-emerald-700" : "text-red-600"}`}>
+                              {fmtScore(val)}
+                            </span>
+                            {val !== "" && <GradeBadge letter={gradeOf(Number(val)).l} color={gradeOf(Number(val)).c} size="xs" />}
+                          </div>
                         )}
                       </td>
                     );
@@ -594,17 +619,50 @@ export const SemesterExamTable: React.FC<SemesterExamTableProps> = ({
 
                   {/* Exam Avg */}
                   <td className="py-2 px-1 text-center bg-blue-50/80 font-extrabold text-blue-950 border-r border-blue-100">
-                    {eAvg !== null ? fmtAvg(eAvg) : "—"}
+                    {eAvg === null ? (
+                      <span className="text-slate-300 font-bold">—</span>
+                    ) : mode === "grade" ? (
+                      <GradeBadge letter={gradeOf(eAvg).l} color={gradeOf(eAvg).c} size="xs" />
+                    ) : mode === "both" ? (
+                      <div className="inline-flex items-center justify-center gap-1">
+                        <span>{fmtAvg(eAvg)}</span>
+                        <GradeBadge letter={gradeOf(eAvg).l} color={gradeOf(eAvg).c} size="xs" />
+                      </div>
+                    ) : (
+                      fmtAvg(eAvg)
+                    )}
                   </td>
 
                   {/* Monthly Avg in S1/S2 */}
                   <td className="py-2 px-1 text-center bg-indigo-50 font-extrabold text-indigo-900 border-r border-indigo-100">
-                    {mAvg !== null ? fmtAvg(mAvg) : "—"}
+                    {mAvg === null ? (
+                      <span className="text-slate-300 font-bold">—</span>
+                    ) : mode === "grade" ? (
+                      <GradeBadge letter={gradeOf(mAvg).l} color={gradeOf(mAvg).c} size="xs" />
+                    ) : mode === "both" ? (
+                      <div className="inline-flex items-center justify-center gap-1">
+                        <span>{fmtAvg(mAvg)}</span>
+                        <GradeBadge letter={gradeOf(mAvg).l} color={gradeOf(mAvg).c} size="xs" />
+                      </div>
+                    ) : (
+                      fmtAvg(mAvg)
+                    )}
                   </td>
 
                   {/* Semester Final Avg */}
                   <td className="py-2 px-1 text-center bg-indigo-100 font-black text-indigo-950 border-r border-indigo-200">
-                    {semFinalAvg !== null ? fmtAvg(semFinalAvg) : "—"}
+                    {semFinalAvg === null ? (
+                      <span className="text-slate-300 font-bold">—</span>
+                    ) : mode === "grade" ? (
+                      <GradeBadge letter={grade.l} color={grade.c} size="xs" />
+                    ) : mode === "both" ? (
+                      <div className="inline-flex items-center justify-center gap-1">
+                        <span>{fmtAvg(semFinalAvg)}</span>
+                        <GradeBadge letter={grade.l} color={grade.c} size="xs" />
+                      </div>
+                    ) : (
+                      fmtAvg(semFinalAvg)
+                    )}
                   </td>
 
                   {/* Rank */}

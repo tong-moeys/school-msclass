@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInAnonymously,
+  signOut
+} from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db, firestoreConsoleUrl } from "../lib/firebase";
 import { CLASSES } from "../lib/constants";
@@ -77,6 +82,46 @@ export const Auth: React.FC<AuthProps> = ({ teacher, setTeacher, onSelectClass, 
     } catch (e: any) {
       setLoginErr("❌ " + e.message);
       toast("❌ " + e.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setLoading(true);
+    setLoginErr("");
+    try {
+      const cred = await signInAnonymously(auth);
+      const snap = await getDoc(doc(db, "teachers", cred.user.uid));
+      if (snap.exists()) {
+        setTeacher({ uid: cred.user.uid, ...snap.data() } as TeacherProfile);
+      } else {
+        const guestProfile: TeacherProfile = {
+          uid: cred.user.uid,
+          email: "guest@plp2026.edu.kh",
+          fullName: "គ្រូបង្រៀន (សាកល្បង)",
+          title: "លោក",
+          phone: "012 345 678",
+          school: "សាលាបឋមសិក្សាគំរូ",
+          schoolID: "PLP2026",
+          level: "បឋមសិក្សា",
+          province: "បន្ទាយមានជ័យ",
+          district: "ភ្នំស្រុក",
+          commune: "ស្ពានស្រែង",
+          village: "រោគ",
+          createdAt: Date.now(),
+        };
+        try {
+          await setDoc(doc(db, "teachers", cred.user.uid), guestProfile);
+        } catch {}
+        setTeacher(guestProfile);
+      }
+      setView("classes");
+      toast("✅ ចូលប្រើប្រាស់សាកល្បងជោគជ័យ! 🔥", "success");
+    } catch (e: any) {
+      console.warn("Guest sign in error:", e);
+      setLoginErr("💡 សូមប្រើ Email និង Password ដើម្បីចុះឈ្មោះ ឬ Login");
+      toast("⚠️ សូមចុះឈ្មោះ ឬ Login ជាមួយ Email របស់អ្នក", "info");
     } finally {
       setLoading(false);
     }
@@ -251,6 +296,21 @@ export const Auth: React.FC<AuthProps> = ({ teacher, setTeacher, onSelectClass, 
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs hover:opacity-95 active:scale-[0.98] transition shadow-md shadow-blue-500/20 disabled:opacity-50"
           >
             {loading ? "⏳ កំពុងចូល..." : "🔐 ចូលប្រើប្រាស់"}
+          </button>
+
+          <div className="flex items-center my-3 gap-2">
+            <div className="h-px bg-slate-200 flex-1"></div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase">ឬ</span>
+            <div className="h-px bg-slate-200 flex-1"></div>
+          </div>
+
+          <button
+            onClick={handleGuestLogin}
+            disabled={loading}
+            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs transition border border-slate-200 disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            <span>🚀</span>
+            <span>ចូលសាកល្បងភ្លាមៗ (Guest / Demo)</span>
           </button>
 
           <div className="text-center mt-3">

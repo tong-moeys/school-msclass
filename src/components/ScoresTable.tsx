@@ -1,6 +1,7 @@
-import React from "react";
-import { Student, ScoreMap } from "../types";
+import React, { useState } from "react";
+import { Student, ScoreMap, ScoreDisplayMode } from "../types";
 import { SUBJECTS, getTotal, getAvg, getRank, resultOf, gradeOf, fmtAvg, fmtTotal, fmtScore } from "../lib/constants";
+import { ScoreDisplayToggle, GradeBadge } from "./ScoreDisplayToggle";
 
 interface ScoresTableProps {
   students: Student[];
@@ -9,6 +10,8 @@ interface ScoresTableProps {
   onUpdateScore: (studentId: string, subject: string, value: number | "") => void;
   onOpenPhotoModal: (id: string, name: string, gender: string) => void;
   honorPhotos: Record<string, string>;
+  displayMode?: ScoreDisplayMode;
+  onDisplayModeChange?: (mode: ScoreDisplayMode) => void;
 }
 
 export const ScoresTable: React.FC<ScoresTableProps> = ({
@@ -18,7 +21,16 @@ export const ScoresTable: React.FC<ScoresTableProps> = ({
   onUpdateScore,
   onOpenPhotoModal,
   honorPhotos,
+  displayMode: externalMode,
+  onDisplayModeChange,
 }) => {
+  const [internalMode, setInternalMode] = useState<ScoreDisplayMode>("both");
+  const mode = externalMode ?? internalMode;
+  const setMode = (m: ScoreDisplayMode) => {
+    setInternalMode(m);
+    if (onDisplayModeChange) onDisplayModeChange(m);
+  };
+
   if (!students.length) {
     return (
       <div className="text-center py-12 text-slate-400">
@@ -29,8 +41,21 @@ export const ScoresTable: React.FC<ScoresTableProps> = ({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs text-left text-slate-700 border-collapse">
+    <div className="p-2 sm:p-3 space-y-2">
+      {/* Control Bar */}
+      <div className="flex items-center justify-between gap-2 flex-wrap bg-white p-2 rounded-xl border border-slate-200 shadow-2xs no-print">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-black text-slate-800">📝 តារាងពិន្ទុប្រចាំខែ</span>
+          <span className="text-slate-400">·</span>
+          <span className="text-[11px] font-bold text-slate-500">{students.length} នាក់</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <ScoreDisplayToggle mode={mode} onChange={setMode} compact={true} />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-sm">
+        <table className="w-full text-xs text-left text-slate-700 border-collapse">
         <thead>
           <tr className="bg-slate-800 text-white font-bold text-[10px] whitespace-nowrap sticky top-0 z-20">
             <th className="py-3 px-2 text-center w-8 sticky left-0 z-30 bg-slate-800">ល.រ</th>
@@ -42,10 +67,14 @@ export const ScoresTable: React.FC<ScoresTableProps> = ({
               </th>
             ))}
             <th className="py-3 px-2 text-center bg-slate-700 w-16">ពិន្ទុសរុប</th>
-            <th className="py-3 px-2 text-center bg-slate-700 w-16">មធ្យមភាគ</th>
+            <th className={`py-3 px-2 text-center w-16 ${mode === 'avg' || mode === 'both' ? 'bg-blue-900 text-amber-300 font-black' : 'bg-slate-700'}`}>
+              មធ្យមភាគ
+            </th>
             <th className="py-3 px-2 text-center bg-slate-700 w-12">ចំ.ថ្នាក់</th>
             <th className="py-3 px-2 text-center w-14">លទ្ធផល</th>
-            <th className="py-3 px-2 text-center w-12">និទ្ទេស</th>
+            <th className={`py-3 px-2 text-center w-14 ${mode === 'grade' || mode === 'both' ? 'bg-amber-900 text-amber-200 font-black' : 'bg-slate-700'}`}>
+              និទ្ទេស
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 bg-white">
@@ -90,6 +119,8 @@ export const ScoresTable: React.FC<ScoresTableProps> = ({
                 {/* Subject score inputs/cells */}
                 {SUBJECTS.map((subj) => {
                   const val = scoresMap[s.id]?.[subj] ?? "";
+                  const subGrade = val !== "" && !isNaN(Number(val)) ? gradeOf(Number(val)) : null;
+
                   return (
                     <td key={subj} className="py-1 px-1 text-center">
                       {editMode ? (
@@ -117,14 +148,36 @@ export const ScoresTable: React.FC<ScoresTableProps> = ({
                           placeholder="—"
                           className="w-11 text-center border border-blue-300 rounded py-0.5 text-xs outline-none focus:border-blue-600 font-semibold"
                         />
-                      ) : (
+                      ) : val === "" || val === undefined ? (
+                        <span className="text-slate-300 font-bold">—</span>
+                      ) : mode === "grade" ? (
+                        subGrade ? (
+                          <GradeBadge letter={subGrade.l} color={subGrade.c} size="xs" />
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )
+                      ) : mode === "avg" ? (
                         <span
                           className={`font-bold ${
-                            Number(val) >= 5 ? "text-emerald-600" : "text-slate-400"
+                            Number(val) >= 5 ? "text-emerald-700" : "text-red-600"
                           }`}
                         >
-                          {val !== "" && val !== undefined ? fmtScore(val) : "—"}
+                          {fmtScore(val)}
                         </span>
+                      ) : (
+                        /* both */
+                        <div className="inline-flex items-center justify-center gap-1">
+                          <span
+                            className={`font-bold ${
+                              Number(val) >= 5 ? "text-emerald-700" : "text-red-600"
+                            }`}
+                          >
+                            {fmtScore(val)}
+                          </span>
+                          {subGrade && subGrade.l !== "—" && (
+                            <GradeBadge letter={subGrade.l} color={subGrade.c} size="xs" />
+                          )}
+                        </div>
                       )}
                     </td>
                   );
@@ -135,7 +188,16 @@ export const ScoresTable: React.FC<ScoresTableProps> = ({
                   {fmtTotal(total)}
                 </td>
                 <td className="py-2 px-2 text-center bg-slate-100 font-extrabold text-indigo-900">
-                  {fmtAvg(avg)}
+                  {mode === "grade" ? (
+                    <GradeBadge letter={grade.l} color={grade.c} size="xs" />
+                  ) : mode === "both" ? (
+                    <div className="inline-flex items-center justify-center gap-1">
+                      <span>{fmtAvg(avg)}</span>
+                      <GradeBadge letter={grade.l} color={grade.c} size="xs" />
+                    </div>
+                  ) : (
+                    fmtAvg(avg)
+                  )}
                 </td>
                 <td className="py-2 px-2 text-center bg-slate-100 font-extrabold text-slate-800">
                   {rank}
@@ -148,18 +210,23 @@ export const ScoresTable: React.FC<ScoresTableProps> = ({
                   {passFail}
                 </td>
                 <td className="py-2 px-2 text-center">
-                  <span
-                    className="inline-block px-2 py-0.5 rounded-full text-white font-extrabold text-[11px]"
-                    style={{ backgroundColor: grade.c }}
-                  >
-                    {grade.l}
-                  </span>
+                  {grade.l !== "—" ? (
+                    <span
+                      className="inline-block px-2 py-0.5 rounded-full text-white font-extrabold text-[11px]"
+                      style={{ backgroundColor: grade.c }}
+                    >
+                      {grade.l}
+                    </span>
+                  ) : (
+                    <span className="text-slate-300 font-bold">—</span>
+                  )}
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

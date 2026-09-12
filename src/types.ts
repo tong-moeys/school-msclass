@@ -44,6 +44,8 @@ export interface ScoreMap {
   [subject: string]: number | string;
 }
 
+export type ScoreDisplayMode = "avg" | "grade" | "both";
+
 export interface AttendanceMap {
   [day: number]: 'P' | 'A' | '';
 }
