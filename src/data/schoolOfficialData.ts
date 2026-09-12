@@ -14,24 +14,26 @@ export interface AnnualClassStat {
   repeatFemale: number;
   dropTotal: number;
   dropFemale: number;
+  avg?: number | string;
+  grade?: string;
 }
 
 export const BASELINE_ANNUAL_CLASSES: AnnualClassStat[] = [
-  { cls: "1A", total: 31, female: 15, examTotal: 31, examFemale: 15, passAvgTotal: 31, passAvgFemale: 15, retestTotal: 0, retestFemale: 0, passFinalTotal: 31, passFinalFemale: 15, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "1B", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "2A", total: 22, female: 12, examTotal: 22, examFemale: 12, passAvgTotal: 22, passAvgFemale: 12, retestTotal: 0, retestFemale: 0, passFinalTotal: 22, passFinalFemale: 12, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "2B", total: 22, female: 10, examTotal: 22, examFemale: 10, passAvgTotal: 22, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 22, passFinalFemale: 10, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "3A", total: 25, female: 14, examTotal: 25, examFemale: 14, passAvgTotal: 14, passAvgFemale: 7, retestTotal: 0, retestFemale: 0, passFinalTotal: 14, passFinalFemale: 7, repeatTotal: 11, repeatFemale: 7, dropTotal: 0, dropFemale: 0 },
-  { cls: "3B", total: 20, female: 10, examTotal: 20, examFemale: 10, passAvgTotal: 20, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 20, passFinalFemale: 10, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "4A", total: 25, female: 12, examTotal: 25, examFemale: 12, passAvgTotal: 21, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 21, passFinalFemale: 10, repeatTotal: 4, repeatFemale: 2, dropTotal: 0, dropFemale: 0 },
-  { cls: "4B", total: 24, female: 11, examTotal: 24, examFemale: 11, passAvgTotal: 24, passAvgFemale: 11, retestTotal: 0, retestFemale: 0, passFinalTotal: 24, passFinalFemale: 11, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "5A", total: 25, female: 12, examTotal: 25, examFemale: 12, passAvgTotal: 23, passAvgFemale: 12, retestTotal: 0, retestFemale: 0, passFinalTotal: 23, passFinalFemale: 12, repeatTotal: 2, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "5B", total: 25, female: 11, examTotal: 25, examFemale: 11, passAvgTotal: 23, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 23, passFinalFemale: 10, repeatTotal: 2, repeatFemale: 1, dropTotal: 0, dropFemale: 0 },
-  { cls: "6A", total: 35, female: 17, examTotal: 35, examFemale: 17, passAvgTotal: 34, passAvgFemale: 17, retestTotal: 0, retestFemale: 0, passFinalTotal: 34, passFinalFemale: 17, repeatTotal: 1, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "6B", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "ML", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "HL", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
-  { cls: "3ក", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0 },
+  { cls: "1A", total: 31, female: 15, examTotal: 31, examFemale: 15, passAvgTotal: 31, passAvgFemale: 15, retestTotal: 0, retestFemale: 0, passFinalTotal: 31, passFinalFemale: 15, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "7.20", grade: "C" },
+  { cls: "1B", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "—", grade: "—" },
+  { cls: "2A", total: 22, female: 12, examTotal: 22, examFemale: 12, passAvgTotal: 22, passAvgFemale: 12, retestTotal: 0, retestFemale: 0, passFinalTotal: 22, passFinalFemale: 12, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "7.10", grade: "C" },
+  { cls: "2B", total: 22, female: 10, examTotal: 22, examFemale: 10, passAvgTotal: 22, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 22, passFinalFemale: 10, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "7.05", grade: "C" },
+  { cls: "3A", total: 25, female: 14, examTotal: 25, examFemale: 14, passAvgTotal: 14, passAvgFemale: 7, retestTotal: 0, retestFemale: 0, passFinalTotal: 14, passFinalFemale: 7, repeatTotal: 11, repeatFemale: 7, dropTotal: 0, dropFemale: 0, avg: "6.80", grade: "D" },
+  { cls: "3B", total: 20, female: 10, examTotal: 20, examFemale: 10, passAvgTotal: 20, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 20, passFinalFemale: 10, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "7.15", grade: "C" },
+  { cls: "4A", total: 25, female: 12, examTotal: 25, examFemale: 12, passAvgTotal: 21, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 21, passFinalFemale: 10, repeatTotal: 4, repeatFemale: 2, dropTotal: 0, dropFemale: 0, avg: "6.95", grade: "D" },
+  { cls: "4B", total: 24, female: 11, examTotal: 24, examFemale: 11, passAvgTotal: 24, passAvgFemale: 11, retestTotal: 0, retestFemale: 0, passFinalTotal: 24, passFinalFemale: 11, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "7.30", grade: "C" },
+  { cls: "5A", total: 25, female: 12, examTotal: 25, examFemale: 12, passAvgTotal: 23, passAvgFemale: 12, retestTotal: 0, retestFemale: 0, passFinalTotal: 23, passFinalFemale: 12, repeatTotal: 2, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "7.40", grade: "C" },
+  { cls: "5B", total: 25, female: 11, examTotal: 25, examFemale: 11, passAvgTotal: 23, passAvgFemale: 10, retestTotal: 0, retestFemale: 0, passFinalTotal: 23, passFinalFemale: 10, repeatTotal: 2, repeatFemale: 1, dropTotal: 0, dropFemale: 0, avg: "7.25", grade: "C" },
+  { cls: "6A", total: 35, female: 17, examTotal: 35, examFemale: 17, passAvgTotal: 34, passAvgFemale: 17, retestTotal: 0, retestFemale: 0, passFinalTotal: 34, passFinalFemale: 17, repeatTotal: 1, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "7.60", grade: "C" },
+  { cls: "6B", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "—", grade: "—" },
+  { cls: "ML", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "—", grade: "—" },
+  { cls: "HL", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "—", grade: "—" },
+  { cls: "3ក", total: 0, female: 0, examTotal: 0, examFemale: 0, passAvgTotal: 0, passAvgFemale: 0, retestTotal: 0, retestFemale: 0, passFinalTotal: 0, passFinalFemale: 0, repeatTotal: 0, repeatFemale: 0, dropTotal: 0, dropFemale: 0, avg: "—", grade: "—" },
 ];
 
 export interface PriSubjectRow {

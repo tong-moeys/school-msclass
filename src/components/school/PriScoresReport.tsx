@@ -8,6 +8,12 @@ interface PriScoresReportProps {
   reporterRole?: string;
   directorName?: string;
   directorPhone?: string;
+  dates?: {
+    d0: { lunar: string; solar: string };
+    d1: { lunar: string; solar: string };
+    d2: { lunar: string; solar: string };
+  };
+  customGradeBlocks?: PriGradeBlock[];
 }
 
 export const PriScoresReport: React.FC<PriScoresReportProps> = ({
@@ -16,13 +22,18 @@ export const PriScoresReport: React.FC<PriScoresReportProps> = ({
   reporterRole = "គ្រូបង្រៀន",
   directorName,
   directorPhone = "0976858898",
+  dates,
+  customGradeBlocks,
 }) => {
   const province = teacher?.province || "បន្ទាយមានជ័យ";
   const district = teacher?.district || "ភ្នំស្រុក";
   const commune = teacher?.commune || "ស្ពានស្រែង";
   const school = teacher?.school || "សាលាបឋមសិក្សា រោគ";
+  const village = (teacher?.village || "រោគ").trim();
+  const villagePrefix = village.startsWith("ភូមិ") ? `${village}, ` : `ភូមិ${village}, `;
   const phone = teacher?.phone || directorPhone;
   const director = directorName || teacher?.fullName || "";
+  const displayBlocks = customGradeBlocks && customGradeBlocks.length > 0 ? customGradeBlocks : BASELINE_PRI_DATA;
 
   return (
     <div className="text-slate-900 bg-white leading-relaxed text-xs">
@@ -96,7 +107,7 @@ export const PriScoresReport: React.FC<PriScoresReportProps> = ({
 
       {/* Tables for each Grade 1 to 6 */}
       <div className="space-y-6">
-        {BASELINE_PRI_DATA.map((block) => (
+        {displayBlocks.map((block) => (
           <div key={block.gradeNum} className="space-y-1">
             <div className="font-black text-slate-950 text-xs">
               ថ្នាក់ទី{block.gradeNum}
@@ -192,7 +203,7 @@ export const PriScoresReport: React.FC<PriScoresReportProps> = ({
           <div className="space-y-1 text-slate-800 text-[11px]">
             <div>ហត្ថលេខា: .....................................................</div>
             <div>ឈ្មោះ: {director || "....................................................."}</div>
-            <div>ថ្ងៃទី: .........................................................</div>
+            <div>ថ្ងៃទី: {dates ? `${villagePrefix}${dates.d1.solar}` : "........................................................."}</div>
           </div>
         </div>
 
@@ -205,7 +216,7 @@ export const PriScoresReport: React.FC<PriScoresReportProps> = ({
           <div className="space-y-1 text-slate-800 text-[11px]">
             <div>ហត្ថលេខា: .....................................................</div>
             <div>ឈ្មោះ: <span className="font-bold">{reporterName}</span></div>
-            <div>តួនាទី: <span className="font-medium">{reporterRole}</span> &nbsp;&nbsp; ថ្ងៃទី: ........................</div>
+            <div>តួនាទី: <span className="font-medium">{reporterRole}</span> &nbsp;&nbsp; ថ្ងៃទី: {dates ? `${villagePrefix}${dates.d0.solar}` : "........................"}</div>
           </div>
         </div>
       </div>

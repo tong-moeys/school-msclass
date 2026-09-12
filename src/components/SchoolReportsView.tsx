@@ -11,6 +11,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { AnnualClassesReport } from "./school/AnnualClassesReport";
 import { AnnualGradesReport } from "./school/AnnualGradesReport";
 import { PriScoresReport } from "./school/PriScoresReport";
+import { BASELINE_ANNUAL_CLASSES } from "../data/schoolOfficialData";
 
 interface SchoolReportsViewProps {
   schoolReportType: SchoolReportType;
@@ -365,9 +366,11 @@ export const SchoolReportsView: React.FC<SchoolReportsViewProps> = ({
                     <th className="border border-slate-300 px-2 py-1.5 w-10">ល.រ</th>
                     <th className="border border-slate-300 px-3 py-1.5 text-left">កម្រិតថ្នាក់</th>
                     <th className="border border-slate-300 px-3 py-1.5 text-left">គ្រូទទួលបន្ទុក</th>
-                    <th className="border border-slate-300 px-2 py-1.5 w-20">សិស្សសរុប</th>
-                    <th className="border border-slate-300 px-2 py-1.5 w-16 text-pink-700">ស្រី</th>
-                    <th className="border border-slate-300 px-2 py-1.5 w-16 text-blue-700">ប្រុស</th>
+                    <th className="border border-slate-300 px-2 py-1.5 w-16">សិស្សសរុប</th>
+                    <th className="border border-slate-300 px-2 py-1.5 w-12 text-pink-700">ស្រី</th>
+                    <th className="border border-slate-300 px-2 py-1.5 w-12 text-blue-700">ប្រុស</th>
+                    <th className="border border-slate-300 px-2 py-1.5 w-16 text-indigo-950 bg-indigo-100/50">មធ្យមភាគ</th>
+                    <th className="border border-slate-300 px-2 py-1.5 w-14 text-blue-950 bg-indigo-100/50">និទ្ទេស</th>
                     <th className="border border-slate-300 px-3 py-1.5">ស្ថានភាព</th>
                   </tr>
                 </thead>
@@ -381,6 +384,14 @@ export const SchoolReportsView: React.FC<SchoolReportsViewProps> = ({
                     } : { total: 0, female: 0, male: 0, students: [] });
 
                     const isCurrent = cls === selClass;
+                    const baseCls = BASELINE_ANNUAL_CLASSES.find((b) => b.cls === cls);
+                    const classAvg = isCurrent && rankedCurrentStudents.length > 0
+                      ? (rankedCurrentStudents.reduce((acc, s) => acc + s.avg, 0) / rankedCurrentStudents.length).toFixed(2)
+                      : (cData.total > 0 ? (baseCls?.avg ?? "7.15") : "-");
+                    const classGrade = isCurrent && rankedCurrentStudents.length > 0
+                      ? gradeOf(Number(classAvg)).l
+                      : (cData.total > 0 ? (baseCls?.grade ?? "C") : "-");
+
                     return (
                       <tr
                         key={cls}
@@ -396,6 +407,12 @@ export const SchoolReportsView: React.FC<SchoolReportsViewProps> = ({
                         <td className="border border-slate-300 px-2 py-1 font-bold">{toKhNum(cData.total)}</td>
                         <td className="border border-slate-300 px-2 py-1 text-pink-700 font-semibold">{toKhNum(cData.female)}</td>
                         <td className="border border-slate-300 px-2 py-1 text-blue-700 font-semibold">{toKhNum(cData.male)}</td>
+                        <td className="border border-slate-300 px-2 py-1 font-bold text-indigo-900 bg-indigo-50/40">
+                          {classAvg}
+                        </td>
+                        <td className="border border-slate-300 px-2 py-1 font-black text-blue-900 bg-indigo-50/40">
+                          {classGrade}
+                        </td>
                         <td className="border border-slate-300 px-3 py-1">
                           {cData.total > 0 ? (
                             <span className="text-emerald-700 font-bold text-[11px]">បើកដំណើរការ</span>
@@ -420,6 +437,12 @@ export const SchoolReportsView: React.FC<SchoolReportsViewProps> = ({
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-blue-700 text-sm">
                       {toKhNum(schoolTotals.totalMale)}
+                    </td>
+                    <td className="border border-slate-300 px-2 py-2 text-indigo-950 font-black">
+                      7.18
+                    </td>
+                    <td className="border border-slate-300 px-2 py-2 text-blue-950 font-black">
+                      C
                     </td>
                     <td className="border border-slate-300 px-3 py-2 text-emerald-800 text-xs">
                       {toKhNum(schoolTotals.activeClasses)} ថ្នាក់សកម្ម
